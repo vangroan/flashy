@@ -7,7 +7,10 @@ import (
 	"os/signal"
 	"sync"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/gorilla/mux"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,14 +21,27 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	err := os.MkdirAll("./data", os.ModePerm)
+	if err != nil {
+		panic(err)
+	}
+
+	// Database
+	db, err := gorm.Open("sqlite3", "./data/data.sqlite3")
+	if err != nil {
+		panic(err)
+	}
+
+	// Routes
 	r := mux.NewRouter()
 	r.Use(logRequest)
 	r.NotFoundHandler = http.HandlerFunc(NotFound)
-	NewFlashCardCtrl(r.PathPrefix("/cards").Subrouter(), nil)
+	NewFlashCardCtrl(r.PathPrefix("/cards").Subrouter(), db)
 
 	srv := http.Server{Addr: ":8000"}
 	srv.Handler = r
 
+	// Wait for listen in goroutine
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -40,6 +56,7 @@ func main() {
 
 	log.Debug("main(): Listening")
 
+	// Custom OS signal handling
 	sig := make(chan os.Signal)
 	signal.Notify(sig, os.Interrupt, os.Kill)
 

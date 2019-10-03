@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 )
 
 // **********************************
@@ -39,5 +40,7 @@ func NewFlashCardCtrl(route *mux.Router, db *gorm.DB) FlashCardCtrl {
 
 // ReadMany retrieves all of the current user's flash cards.
 func (ctrl *FlashCardCtrl) ReadMany(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(loggerKey).(*log.Entry)
+	logger.Debug("ReadMany(): Hello, World!")
 	fmt.Fprint(w, "Hello, World!")
 }
