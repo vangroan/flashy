@@ -40,3 +40,7 @@ func NewFlashCardCtrl(route *mux.Router, db *gorm.DB) FlashCardCtrl {
 func (ctrl *FlashCardCtrl) Read(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Hello, World!")
 }
+
+func (ctrl *FlashCardCtrl) ReadMany(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello, World!")
+}

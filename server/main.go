@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -18,13 +20,16 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Use(logRequest)
+	r.NotFoundHandler = http.HandlerFunc(NotFound)
 	NewFlashCardCtrl(r.PathPrefix("/cards").Subrouter(), nil)
 
 	srv := http.Server{Addr: ":8000"}
+	srv.Handler = r
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
 		// returns ErrServerClosed on graceful close
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServe(): %s", err)
@@ -35,10 +40,24 @@ func main() {
 
 	log.Debug("main(): Listening")
 
-	// In real world you don't use TODO()
-	if err := srv.Shutdown(context.TODO()); err != nil {
-		panic(err) // failure/timeout shutting down the server gracefully
-	}
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt, os.Kill)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		for s := range sig {
+			log.Debugf("main(): Received signal %s", s.String())
+
+			// In real world you don't use TODO()
+			if err := srv.Shutdown(context.TODO()); err != nil {
+				panic(err) // failure/timeout shutting down the server gracefully
+			}
+
+			return
+		}
+	}()
 
 	log.Debug("main(): Shutting down")
 	wg.Wait()
