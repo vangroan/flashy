@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	// Setup Logger
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetLevel(log.TraceLevel)
 	log.Debug("main(): Start")
