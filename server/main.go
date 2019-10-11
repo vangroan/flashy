@@ -33,6 +33,9 @@ func main() {
 		panic(err)
 	}
 
+	// Migrate
+	db.AutoMigrate(&Box{}, &BoxCard{}, &FlashCard{})
+
 	// Routes
 	r := mux.NewRouter()
 	r.Use(logRequest)
